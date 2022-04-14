@@ -2,7 +2,14 @@
 name = "pdfstore"
 version = "0.1.0"
 edition = "2021"
+repository = "https://github.com/unvalley/pdfstore"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+anyhow = "1.0.56"
+crossterm = "0.23.2"
+log = "0.4.16"
+tokio = "1.17.0"
+tui = {version = "0.17.0", features = ["crossterm"], default-features = false}
+tui-logger = "0.7.1"
