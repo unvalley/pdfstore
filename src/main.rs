@@ -1,17 +1,17 @@
-use std::cell::RefCell;
-use std::rc::Rc;
-use std::io::stdout;
-use std::time::Duration;
+use crate::app::ui;
 use app::{App, AppReturn};
 use inputs::events::Events;
 use inputs::InputEvent;
+use std::cell::RefCell;
+use std::io::stdout;
+use std::rc::Rc;
+use std::time::Duration;
 use tui::backend::CrosstermBackend;
 use tui::Terminal;
-use crate::app::ui;
 
-mod version;
 pub mod app;
 pub mod inputs;
+mod version;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {

@@ -1,7 +1,7 @@
 use self::key::Key;
 
-pub mod key;
 pub mod events;
+pub mod key;
 
 pub enum InputEvent {
     Input(Key),
