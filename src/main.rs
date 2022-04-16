@@ -2,30 +2,30 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use std::io::stdout;
 use std::time::Duration;
-
 use app::{App, AppReturn};
 use inputs::events::Events;
 use inputs::InputEvent;
 use tui::backend::CrosstermBackend;
 use tui::Terminal;
-
 use crate::app::ui;
 
+mod version;
 pub mod app;
 pub mod inputs;
 
-
-fn main() -> anyhow::Result<()> {
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
     // TODO: How to use Rc & RefCell
     let app = Rc::new(RefCell::new(App::new()));
 
     // Configure Crossterm backend for tui
     let stdout = stdout();
     crossterm::terminal::enable_raw_mode()?;
+
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
+
     terminal.clear()?;
-    terminal.hide_cursor()?;
 
     // User event handler
     let tick_rate = Duration::from_millis(200);

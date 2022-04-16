@@ -1,8 +1,11 @@
 [package]
 name = "pdfstore"
-version = "0.1.0"
+version = "0.0.1"
 edition = "2021"
+readme = "README.md"
+homepage = "https://github.com/unvalley/pdfstore"
 repository = "https://github.com/unvalley/pdfstore"
+license = "MIT"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -10,6 +13,6 @@ repository = "https://github.com/unvalley/pdfstore"
 anyhow = "1.0.56"
 crossterm = "0.23.2"
 log = "0.4.16"
-tokio = "1.17.0"
+tokio = {version = "1.17.0", features = ["full"]}
 tui = {version = "0.17.0", features = ["crossterm"], default-features = false}
 tui-logger = "0.7.1"

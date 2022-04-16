@@ -9,10 +9,7 @@ use super::actions::Actions;
 use super::state::AppState;
 use crate::app::App;
 
-pub fn draw<B>(rect: &mut Frame<B>, app: &App)
-where
-    B: Backend,
-{
+pub fn draw<B: Backend>(rect: &mut Frame<B>, app: &App) {
     let size = rect.size();
     check_size(&size);
 
