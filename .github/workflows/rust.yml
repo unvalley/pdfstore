@@ -12,7 +12,14 @@ env:
 jobs:
   format:
     name: Format
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - macOS-latest
+          - windows-2019
     steps:
       - uses: actions/checkout@v3
       - name: Cargo fmt
@@ -20,8 +27,19 @@ jobs:
 
   lint:
     name: Lint
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - macOS-latest
+          - windows-2019
     steps:
+      - uses: actions/checkout@v3
+      - run: rustup component add clippy
+      - name: clippy
+        run: cargo clippy --all-targets --all-features -- -D warnings
 
   build:
     runs-on: ubuntu-latest
