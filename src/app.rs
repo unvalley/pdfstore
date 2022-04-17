@@ -1,13 +1,9 @@
 use log::{debug, warn};
 
-use self::actions::Actions;
-use self::state::AppState;
-use crate::app::actions::Action;
+use crate::actions::{Action, Actions};
+use crate::state::AppState;
 use crate::inputs::key::Key;
 
-pub mod actions;
-pub mod state;
-pub mod ui;
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum AppReturn {

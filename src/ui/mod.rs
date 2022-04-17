@@ -5,35 +5,32 @@ use tui::text::{Span, Spans};
 use tui::widgets::{Block, BorderType, Borders, Cell, Paragraph, Row, Table};
 use tui::Frame;
 
-use super::actions::Actions;
-use super::state::AppState;
+use crate::actions::Actions;
+use crate::state::AppState;
 use crate::app::App;
 
 pub fn draw<B: Backend>(rect: &mut Frame<B>, app: &App) {
     let size = rect.size();
     check_size(&size);
 
-    // Vertical layout
     let chunks = Layout::default()
-        .direction(Direction::Vertical)
-        .constraints([Constraint::Length(3), Constraint::Min(10)].as_ref())
-        .split(size);
-
-    // Title
-    let title = draw_title();
-    rect.render_widget(title, chunks[0]);
-
-    // Body & Help
-    let body_chunks = Layout::default()
         .direction(Direction::Horizontal)
-        .constraints([Constraint::Min(20), Constraint::Length(32)].as_ref())
-        .split(chunks[1]);
+        .constraints([Constraint::Percentage(60), Constraint::Percentage(40)].as_ref())
+        .split(size);
+    
+    let list_chunks = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
+        .split(chunks[0]);
 
-    let body = draw_body(false, app.state());
-    rect.render_widget(body, body_chunks[0]);
+    let renamed_pdfs = draw_body(false, app.state());
+    rect.render_widget(renamed_pdfs, list_chunks[0]);
+
+    let body2 = draw_body(false, app.state());
+    rect.render_widget(body2, list_chunks[1]);
 
     let help = draw_help(app.actions());
-    rect.render_widget(help, body_chunks[1]);
+    rect.render_widget(help, chunks[1]);
 }
 
 fn draw_title<'a>() -> Paragraph<'a> {
