@@ -1,18 +1,17 @@
 use inputs::events::Events;
 use inputs::InputEvent;
 use std::cell::RefCell;
-use std::io::stdout;
+use std::io::{self, stdout};
 use std::rc::Rc;
 use std::time::Duration;
-use tui::backend::CrosstermBackend;
+use tui::backend::{Backend, CrosstermBackend};
 use tui::Terminal;
 
-pub mod inputs;
-pub mod app;
-pub mod version;
-pub mod state;
 pub mod actions;
-pub mod ui;
+pub mod app;
+pub mod inputs;
+pub mod state;
+pub mod version;
 
 use crate::app::{App, AppReturn};
 
@@ -24,7 +23,6 @@ async fn main() -> anyhow::Result<()> {
     // Configure Crossterm backend for tui
     let stdout = stdout();
     crossterm::terminal::enable_raw_mode()?;
-
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
 
@@ -36,8 +34,9 @@ async fn main() -> anyhow::Result<()> {
 
     loop {
         let mut app = app.borrow_mut();
-        // Render
-        terminal.draw(|rect| ui::draw(rect, &app))?;
+
+        draw(&mut terminal, &app)?;
+
         // Handle inputs
         let result = match events.next()? {
             // lets process that event
@@ -56,5 +55,14 @@ async fn main() -> anyhow::Result<()> {
     terminal.show_cursor()?;
     crossterm::terminal::disable_raw_mode()?;
 
+    Ok(())
+}
+
+fn draw<B: Backend>(terminal: &mut Terminal<B>, app: &App) -> io::Result<()> {
+    terminal.draw(|f| {
+        if let Err(e) = app.draw(f) {
+            log::error!("failed to draw: {:?}", e);
+        }
+    })?;
     Ok(())
 }
