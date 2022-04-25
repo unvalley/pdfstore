@@ -46,17 +46,26 @@ async fn main() -> anyhow::Result<()> {
             }
         })?;
 
-        // Handle inputs
-        let result = match events.next()? {
-            // lets process that event
-            InputEvent::Input(key) => app.do_action(key),
-            // handle no user input
-            InputEvent::Tick => app.update_on_tick(),
-        };
-        // Check if we should exit
-        if result == AppReturn::Exit {
-            break;
+        match events.next()? {
+            InputEvent::Input(key) => match app.event(key).await {
+                Ok(state) => {
+                    if !state.is_consumed() && (key == app.key_config.quit) {
+                        break
+                    }
+                }
+                Err(err) => break
+            }
+            InputEvent::Tick => (),
         }
+
+        // // Handle inputs
+        // let result = match events.next()? {
+        //     // lets process that event
+        //     InputEvent::Input(key) => app.do_action(key),
+        //     // handle no user input
+        //     InputEvent::Tick => app.update_on_tick(),
+        // };
+        // Check if we should exit
     }
 
     // Restore the terminal and close application

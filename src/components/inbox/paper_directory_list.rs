@@ -32,6 +32,9 @@ impl DrawableComponent for PaperDirectoryListComponent {
         area: Rect,
         focused: bool,
     ) -> anyhow::Result<()> {
+
+        let focused_check = if focused { "Focused" } else { "Not Focused" };
+
         let body = Paragraph::new(vec![
             Spans::from(Span::raw("Test")),
             Spans::from(Span::raw("Test")),
@@ -43,7 +46,7 @@ impl DrawableComponent for PaperDirectoryListComponent {
                 .borders(Borders::ALL)
                 .style(Style::default().fg(Color::White))
                 .border_type(BorderType::Plain)
-                .title("PDF Files"),
+                .title(focused_check),
         );
 
         f.render_widget(body, area);

@@ -1,5 +1,4 @@
 use log::{debug, warn};
-use std::rc::Rc;
 use tui::{
     backend::Backend,
     layout::{Alignment, Constraint, Direction, Layout, Rect},
@@ -9,12 +8,15 @@ use tui::{
     Frame,
 };
 
-use crate::{inputs::key::Key, components::EventState};
 use crate::key_config::KeyConfig;
 use crate::state::AppState;
 use crate::{
     actions::{Action, Actions},
     components::{inbox::InboxComponent, DrawableComponent},
+};
+use crate::{
+    components::{Component, EventState},
+    inputs::key::Key,
 };
 
 use crate::components::pdf_import_popup::PdfImportPopup;
@@ -27,8 +29,10 @@ pub enum AppReturn {
 
 enum Focus {
     Inbox,
+    Search,
 }
 
+/// if you want to need feature or screen, add it Focus and App
 pub struct App {
     /// Contextual actions
     actions: Actions,
@@ -36,7 +40,7 @@ pub struct App {
     inbox: InboxComponent,
     pdf_import_popup: PdfImportPopup,
     focus: Focus,
-    key_config: KeyConfig,
+    pub key_config: KeyConfig,
     tab: usize,
 }
 
@@ -94,6 +98,33 @@ impl App {
     }
 
     pub async fn event(&mut self, key: Key) -> anyhow::Result<EventState> {
+        if self.component_focus(key)?.is_consumed() {
+            return Ok(EventState::Consumed);
+        }
+
+        if self.move_main_focus(key)?.is_consumed() {
+            return Ok(EventState::Consumed);
+        }
+        Ok(EventState::NotConsumed)
+    }
+
+    /// handling focus to each component
+    pub fn move_main_focus(&mut self, key: Key) -> anyhow::Result<EventState> {
+        self.focus = Focus::Inbox;
+        Ok(EventState::Consumed)
+    }
+
+    /// handling focus in each component
+    pub fn component_focus(&mut self, key: Key) -> anyhow::Result<EventState> {
+        match self.focus {
+            Focus::Inbox => {
+                if self.inbox.event(key)?.is_consumed() {
+                    return Ok(EventState::Consumed);
+                }
+                return Ok(EventState::Consumed);
+            }
+            Focus::Search => return Ok(EventState::Consumed),
+        }
         Ok(EventState::NotConsumed)
     }
 
