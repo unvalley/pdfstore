@@ -1,4 +1,5 @@
 use log::{debug, warn};
+use std::rc::Rc;
 use tui::{
     backend::Backend,
     layout::{Alignment, Constraint, Direction, Layout, Rect},
@@ -8,57 +9,65 @@ use tui::{
     Frame,
 };
 
-use crate::actions::{Action, Actions};
-use crate::inputs::key::Key;
+use crate::{inputs::key::Key, components::EventState};
+use crate::key_config::KeyConfig;
 use crate::state::AppState;
+use crate::{
+    actions::{Action, Actions},
+    components::{inbox::InboxComponent, DrawableComponent},
+};
+
+use crate::components::pdf_import_popup::PdfImportPopup;
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum AppReturn {
     Exit,
     Continue,
 }
+
+enum Focus {
+    Inbox,
+}
+
 pub struct App {
     /// Contextual actions
     actions: Actions,
     state: AppState,
+    inbox: InboxComponent,
+    pdf_import_popup: PdfImportPopup,
+    focus: Focus,
+    key_config: KeyConfig,
     tab: usize,
 }
 
 impl App {
     #[allow(clippy::new_without_default)]
-    pub fn new() -> Self {
+    pub fn new(key_config: KeyConfig) -> Self {
         let actions = vec![Action::Quit].into();
         let state = AppState::initialized();
+        // let key_config = Rc::new(key_config);
         Self {
             actions,
             state,
+            inbox: InboxComponent::new(key_config.clone()),
+            pdf_import_popup: PdfImportPopup::new(),
+            focus: Focus::Inbox,
+            key_config,
             tab: 0,
         }
     }
 
-    pub fn draw<B: Backend>(&self, f: &mut Frame<B>) -> anyhow::Result<()> {
+    pub fn draw<B: Backend>(&mut self, f: &mut Frame<B>) -> anyhow::Result<()> {
         let size = f.size();
         self.check_size(&size);
 
         let chunks_main = Layout::default()
             .direction(Direction::Horizontal)
-            .constraints([Constraint::Percentage(60), Constraint::Percentage(40)].as_ref())
+            .constraints([Constraint::Percentage(100)].as_ref())
             .split(size);
 
-        let chunks_pdfs = Layout::default()
-            .direction(Direction::Vertical)
-            .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
-            .split(chunks_main[0]);
-
-        let renamed_pdfs = self.draw_body(false, self.state());
-        f.render_widget(renamed_pdfs, chunks_pdfs[0]);
-
-        let original_pdfs = self.draw_body(false, self.state());
-        f.render_widget(original_pdfs, chunks_pdfs[1]);
-
-        let pdf_details = self.draw_pdf_details(self.actions());
-        f.render_widget(pdf_details, chunks_main[1]);
-
+        self.inbox
+            .draw(f, chunks_main[0], matches!(self.focus, Focus::Inbox))?;
         Ok(())
     }
 
@@ -69,62 +78,6 @@ impl App {
         if rect.height < 28 {
             panic!("Require height >= 28, (got {})", rect.height);
         }
-    }
-
-    fn draw_pdf_details(&self, actions: &Actions) -> Table {
-        let key_style = Style::default().fg(Color::LightCyan);
-        let help_style = Style::default().fg(Color::Gray);
-
-        let mut rows = vec![];
-        for action in actions.actions().iter() {
-            let mut first = true;
-            for key in action.keys() {
-                let pdf_details = if first {
-                    first = false;
-                    action.to_string()
-                } else {
-                    String::from("")
-                };
-                let row = Row::new(vec![
-                    Cell::from(Span::styled(key.to_string(), key_style)),
-                    Cell::from(Span::styled(pdf_details, help_style)),
-                ]);
-                rows.push(row);
-            }
-        }
-
-        Table::new(rows)
-            .block(
-                Block::default()
-                    .borders(Borders::ALL)
-                    .border_type(BorderType::Plain)
-                    .title("Details"),
-            )
-            .widths(&[Constraint::Length(11), Constraint::Min(20)])
-            .column_spacing(1)
-    }
-
-    pub fn draw_body<'a>(&self, loading: bool, state: &AppState) -> Paragraph<'a> {
-        let loading_text = if loading { "Loading..." } else { "" };
-        let tick_text = if let Some(ticks) = state.count_tick() {
-            format!("Tick count: {}", ticks)
-        } else {
-            String::default()
-        };
-
-        Paragraph::new(vec![
-            Spans::from(Span::raw(loading_text)),
-            Spans::from(Span::raw(tick_text)),
-        ])
-        .style(Style::default().fg(Color::LightCyan))
-        .alignment(Alignment::Left)
-        .block(
-            Block::default()
-                .borders(Borders::ALL)
-                .style(Style::default().fg(Color::White))
-                .border_type(BorderType::Plain)
-                .title("PDF Files"),
-        )
     }
 
     /// Handle a user action
@@ -138,6 +91,10 @@ impl App {
             warn!("No action accociated to {}", key);
             AppReturn::Continue
         }
+    }
+
+    pub async fn event(&mut self, key: Key) -> anyhow::Result<EventState> {
+        Ok(EventState::NotConsumed)
     }
 
     /// We could update the app or dispatch event on tick
