@@ -69,8 +69,11 @@ impl DrawableComponent for InboxComponent {
             focused && matches!(self.focus, Focus::ExistingDirectoryList),
         )?;
 
-        self.pdf_detail
-            .draw(f, inbox_layout[1],focused && matches!(self.focus, Focus::PdfDetail))?;
+        self.pdf_detail.draw(
+            f,
+            inbox_layout[1],
+            focused && matches!(self.focus, Focus::PdfDetail),
+        )?;
 
         Ok(())
     }
@@ -80,12 +83,28 @@ impl Component for InboxComponent {
     fn commands(&self) {}
 
     fn event(&mut self, key: Key) -> anyhow::Result<EventState> {
-        // match key {
-        //     key: if matches!(self.focus, Focus::PdfDetail) => {
-        //     },
-        //     _ => (),
-        // }
-
-        Ok(EventState::NotConsumed)
+        match key {
+            Key::Up => {
+                // focus to paper
+                self.focus = Focus::PaperDirectoryList;
+                return Ok(EventState::Consumed);
+            }
+            Key::Down => {
+                // focus to existing
+                self.focus = Focus::ExistingDirectoryList;
+                return Ok(EventState::Consumed);
+            }
+            Key::Right => {
+                // detailにfocus
+                self.focus = Focus::PdfDetail;
+                return Ok(EventState::Consumed);
+            }
+            Key::Left => {
+                // detailからどちらかにfocus
+                self.focus = Focus::PaperDirectoryList;
+                return Ok(EventState::Consumed);
+            }
+            _ => Ok(EventState::NotConsumed),
+        }
     }
 }

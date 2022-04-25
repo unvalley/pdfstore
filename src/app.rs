@@ -1,20 +1,19 @@
 use log::{debug, warn};
-use std::rc::Rc;
 use tui::{
     backend::Backend,
     layout::{Alignment, Constraint, Direction, Layout, Rect},
-    style::{Color, Style},
-    text::{Span, Spans},
-    widgets::{Block, BorderType, Borders, Cell, Paragraph, Row, Table},
     Frame,
 };
 
-use crate::{inputs::key::Key, components::EventState};
 use crate::key_config::KeyConfig;
 use crate::state::AppState;
 use crate::{
     actions::{Action, Actions},
     components::{inbox::InboxComponent, DrawableComponent},
+};
+use crate::{
+    components::{Component, EventState},
+    inputs::key::Key,
 };
 
 use crate::components::pdf_import_popup::PdfImportPopup;
@@ -27,8 +26,10 @@ pub enum AppReturn {
 
 enum Focus {
     Inbox,
+    Search,
 }
 
+/// if you want to need feature or screen, add it Focus and App
 pub struct App {
     /// Contextual actions
     actions: Actions,
@@ -36,8 +37,9 @@ pub struct App {
     inbox: InboxComponent,
     pdf_import_popup: PdfImportPopup,
     focus: Focus,
-    key_config: KeyConfig,
+    pub key_config: KeyConfig,
     tab: usize,
+    do_quit: bool,
 }
 
 impl App {
@@ -54,6 +56,7 @@ impl App {
             focus: Focus::Inbox,
             key_config,
             tab: 0,
+            do_quit: false,
         }
     }
 
@@ -93,7 +96,51 @@ impl App {
         }
     }
 
+    fn check_quit(&mut self, key: Key) -> bool {
+        if key == self.key_config.quit || key == self.key_config.exit {
+            self.do_quit = true;
+            return true;
+        }
+        false
+    }
+
+    pub fn is_quit(&self) -> bool {
+        self.do_quit
+    }
+
     pub async fn event(&mut self, key: Key) -> anyhow::Result<EventState> {
+        log::trace!("event: {:?}", key.clone());
+        if self.check_quit(key) {
+            return Ok(EventState::NotConsumed);
+        }
+
+        if self.component_focus(key)?.is_consumed() {
+            return Ok(EventState::Consumed);
+        }
+
+        if self.move_main_focus(key)?.is_consumed() {
+            return Ok(EventState::Consumed);
+        }
+        Ok(EventState::NotConsumed)
+    }
+
+    /// handling focus to each component
+    pub fn move_main_focus(&mut self, key: Key) -> anyhow::Result<EventState> {
+        self.focus = Focus::Inbox;
+        Ok(EventState::Consumed)
+    }
+
+    /// handling focus in each component
+    pub fn component_focus(&mut self, key: Key) -> anyhow::Result<EventState> {
+        match self.focus {
+            Focus::Inbox => {
+                if self.inbox.event(key)?.is_consumed() {
+                    return Ok(EventState::Consumed);
+                }
+                return Ok(EventState::Consumed);
+            }
+            Focus::Search => return Ok(EventState::Consumed),
+        }
         Ok(EventState::NotConsumed)
     }
 

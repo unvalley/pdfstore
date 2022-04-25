@@ -33,6 +33,16 @@ pub fn scroll(key: &KeyConfig) -> CommandText {
     )
 }
 
+pub fn move_focus(key: &KeyConfig) -> CommandText {
+    CommandText::new(
+        format!(
+            "Move focus to up/down/left/right [{},{},{},{}]",
+            key.focus_up, key.focus_down, key.focus_left, key.focus_right,
+        ),
+        CMD_GROUP_INBOX,
+    )
+}
+
 pub fn open_pdf(key: &KeyConfig) -> CommandText {
     CommandText::new(
         format!("Open [{}]", ""),

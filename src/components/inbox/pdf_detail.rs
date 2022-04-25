@@ -38,29 +38,15 @@ impl DrawableComponent for PdfDetailComponent {
         let mut rows = vec![];
         let row = Row::new(vec![Cell::from(Span::styled("AAA".to_string(), key_style))]);
         rows.push(row);
-        // for action in self.actions.actions().iter() {
-        //     let mut first = true;
-        //     for key in action.keys() {
-        //         let pdf_details = if first {
-        //             first = false;
-        //             action.to_string()
-        //         } else {
-        //             String::from("")
-        //         };
-        //         let row = Row::new(vec![
-        //             Cell::from(Span::styled(key.to_string(), key_style)),
-        //             Cell::from(Span::styled(pdf_details, help_style)),
-        //         ]);
-        //         rows.push(row);
-        //     }
-        // }
+
+        let focused_check = if focused { "Focused" } else { "Not Focused" };
 
         let table = Table::new(rows)
             .block(
                 Block::default()
                     .borders(Borders::ALL)
                     .border_type(BorderType::Plain)
-                    .title("Details"),
+                    .title(focused_check),
             )
             .widths(&[Constraint::Length(11), Constraint::Min(20)])
             .column_spacing(1);
