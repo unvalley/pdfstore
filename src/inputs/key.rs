@@ -70,9 +70,9 @@ pub enum Key {
 
 impl Key {
     /// If exit
-    pub fn is_exit(&self) -> bool {
-        matches!(self, Key::Ctrl('c') | Key::Char('q') | Key::Esc)
-    }
+    // pub fn is_exit(&self) -> bool {
+    //     matches!(self, Key::Ctrl('c') | Key::Char('q') | Key::Esc)
+    // }
 
     /// Returns the function key corresponding to the given number
     ///

@@ -2,9 +2,6 @@ use log::{debug, warn};
 use tui::{
     backend::Backend,
     layout::{Alignment, Constraint, Direction, Layout, Rect},
-    style::{Color, Style},
-    text::{Span, Spans},
-    widgets::{Block, BorderType, Borders, Cell, Paragraph, Row, Table},
     Frame,
 };
 
@@ -42,6 +39,7 @@ pub struct App {
     focus: Focus,
     pub key_config: KeyConfig,
     tab: usize,
+    do_quit: bool,
 }
 
 impl App {
@@ -58,6 +56,7 @@ impl App {
             focus: Focus::Inbox,
             key_config,
             tab: 0,
+            do_quit: false,
         }
     }
 
@@ -97,7 +96,24 @@ impl App {
         }
     }
 
+    fn check_quit(&mut self, key: Key) -> bool {
+        if key == self.key_config.quit || key == self.key_config.exit {
+            self.do_quit = true;
+            return true;
+        }
+        false
+    }
+
+    pub fn is_quit(&self) -> bool {
+        self.do_quit
+    }
+
     pub async fn event(&mut self, key: Key) -> anyhow::Result<EventState> {
+        log::trace!("event: {:?}", key.clone());
+        if self.check_quit(key) {
+            return Ok(EventState::NotConsumed);
+        }
+
         if self.component_focus(key)?.is_consumed() {
             return Ok(EventState::Consumed);
         }

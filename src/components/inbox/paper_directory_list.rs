@@ -32,7 +32,6 @@ impl DrawableComponent for PaperDirectoryListComponent {
         area: Rect,
         focused: bool,
     ) -> anyhow::Result<()> {
-
         let focused_check = if focused { "Focused" } else { "Not Focused" };
 
         let body = Paragraph::new(vec![
