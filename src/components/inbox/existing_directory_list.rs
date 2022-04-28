@@ -32,9 +32,13 @@ impl DrawableComponent for ExistingDirectoryListComponent {
         area: Rect,
         focused: bool,
     ) -> anyhow::Result<()> {
-        let focused_check = if focused { "Focused" } else { "Not Focused" };
+        let border_style = if focused {
+            Style::default().fg(Color::LightGreen)
+        } else {
+            Style::default().fg(Color::Gray)
+        };
+
         let body = Paragraph::new(vec![
-            Spans::from(Span::raw("Test")),
             Spans::from(Span::raw("Test")),
         ])
         .style(Style::default().fg(Color::LightCyan))
@@ -44,7 +48,8 @@ impl DrawableComponent for ExistingDirectoryListComponent {
                 .borders(Borders::ALL)
                 .style(Style::default().fg(Color::White))
                 .border_type(BorderType::Plain)
-                .title(focused_check),
+                .border_style(border_style)
+                .title("ExisitingDirs"),
         );
 
         f.render_widget(body, area);

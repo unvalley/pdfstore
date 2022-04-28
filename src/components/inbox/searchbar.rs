@@ -32,18 +32,15 @@ impl DrawableComponent for SearchbarComponent {
         area: Rect,
         focused: bool,
     ) -> anyhow::Result<()> {
-
-        let body = Paragraph::new(vec![
-            Spans::from(Span::raw("Search")),
-        ])
-        .style(Style::default().fg(Color::LightCyan))
-        .alignment(Alignment::Left)
-        .block(
-            Block::default()
-                .borders(Borders::ALL)
-                .style(Style::default().fg(Color::White))
-                .border_type(BorderType::Plain)
-        );
+        let body = Paragraph::new(vec![Spans::from(Span::raw("Search"))])
+            .style(Style::default().fg(Color::LightCyan))
+            .alignment(Alignment::Left)
+            .block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .style(Style::default().fg(Color::White))
+                    .border_type(BorderType::Plain),
+            );
 
         f.render_widget(body, area);
 

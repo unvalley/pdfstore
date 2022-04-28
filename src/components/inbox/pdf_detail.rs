@@ -33,20 +33,24 @@ impl DrawableComponent for PdfDetailComponent {
         focused: bool,
     ) -> anyhow::Result<()> {
         let key_style = Style::default().fg(Color::LightCyan);
-        let help_style = Style::default().fg(Color::Gray);
 
         let mut rows = vec![];
-        let row = Row::new(vec![Cell::from(Span::styled("AAA".to_string(), key_style))]);
+        let row = Row::new(vec![Cell::from(Span::styled("".to_string(), key_style))]);
         rows.push(row);
 
-        let focused_check = if focused { "Focused" } else { "Not Focused" };
+        let border_style = if focused {
+            Style::default().fg(Color::LightGreen)
+        } else {
+            Style::default().fg(Color::Gray)
+        };
 
         let table = Table::new(rows)
             .block(
                 Block::default()
                     .borders(Borders::ALL)
                     .border_type(BorderType::Plain)
-                    .title(focused_check),
+                    .border_style(border_style)
+                    .title("Detail"),
             )
             .widths(&[Constraint::Length(11), Constraint::Min(20)])
             .column_spacing(1);

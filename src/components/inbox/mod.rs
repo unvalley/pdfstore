@@ -73,7 +73,6 @@ impl DrawableComponent for InboxComponent {
             .direction(Direction::Vertical)
             .constraints(vec![Constraint::Percentage(50), Constraint::Percentage(50)])
             .split(inbox_layout[0]);
-        
 
         self.searchbar.draw(
             f,
