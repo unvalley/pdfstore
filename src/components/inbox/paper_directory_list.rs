@@ -37,20 +37,17 @@ impl DrawableComponent for PaperDirectoryListComponent {
         } else {
             Style::default().fg(Color::Gray)
         };
-        
 
-        let body = Paragraph::new(vec![
-            Spans::from(Span::raw("Test")),
-        ])
-        .style(Style::default().fg(Color::LightCyan))
-        .alignment(Alignment::Left)
-        .block(
-            Block::default()
-                .borders(Borders::ALL)
-                .border_type(BorderType::Plain)
-                .border_style(border_style)
-                .title("Paper"),
-        );
+        let body = Paragraph::new(vec![Spans::from(Span::raw("Test"))])
+            .style(Style::default().fg(Color::LightCyan))
+            .alignment(Alignment::Left)
+            .block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .border_type(BorderType::Plain)
+                    .border_style(border_style)
+                    .title("Paper"),
+            );
 
         f.render_widget(body, area);
 
