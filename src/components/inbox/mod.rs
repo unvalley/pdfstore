@@ -1,29 +1,39 @@
-pub mod existing_directory_list;
-pub mod paper_directory_list;
+pub mod managed_pdf_list;
 pub mod pdf_detail;
+pub mod searchbar;
+pub mod unmanaged_pdf_list;
 
-pub use existing_directory_list::ExistingDirectoryListComponent;
-pub use paper_directory_list::PaperDirectoryListComponent;
+pub use managed_pdf_list::ManagedPdfListComponent;
 pub use pdf_detail::PdfDetailComponent;
+pub use searchbar::SearchbarComponent;
+pub use unmanaged_pdf_list::UnmanagedPdfListComponent;
+
+use tui::{
+    backend::Backend,
+    layout::{Alignment, Constraint, Direction, Layout, Rect},
+    style::{Color, Style},
+    text::{Span, Spans},
+    widgets::{Block, BorderType, Borders, Cell, Paragraph, Row, Table},
+    Frame,
+};
 
 use crate::components::{Component, DrawableComponent, EventState};
 use crate::inputs::key::Key;
 use crate::key_config::KeyConfig;
-use tui::backend::Backend;
-use tui::layout::{Constraint, Direction, Layout, Rect};
-use tui::Frame;
 
 enum Focus {
+    Searchbar,
     /// ~/paper
-    PaperDirectoryList,
+    ManagedPdfList,
     /// e.g. Downloads/, Documents/
-    ExistingDirectoryList,
+    UnmanagedPdfList,
     PdfDetail,
 }
 
 pub struct InboxComponent {
-    paper_directory_list: PaperDirectoryListComponent,
-    existing_directory_list: ExistingDirectoryListComponent,
+    searchbar: SearchbarComponent,
+    managed_pdf_list: ManagedPdfListComponent,
+    unmanaged_pdf_list: UnmanagedPdfListComponent,
     pdf_detail: PdfDetailComponent,
     focus: Focus,
     key_config: KeyConfig,
@@ -32,10 +42,11 @@ pub struct InboxComponent {
 impl InboxComponent {
     pub fn new(key_config: KeyConfig) -> Self {
         Self {
-            paper_directory_list: PaperDirectoryListComponent::new(key_config.clone()),
-            existing_directory_list: ExistingDirectoryListComponent::new(key_config.clone()),
+            searchbar: SearchbarComponent::new(key_config.clone()),
+            managed_pdf_list: ManagedPdfListComponent::new(key_config.clone()),
+            unmanaged_pdf_list: UnmanagedPdfListComponent::new(key_config.clone()),
             pdf_detail: PdfDetailComponent::new(key_config.clone()),
-            focus: Focus::PaperDirectoryList,
+            focus: Focus::ManagedPdfList,
             key_config,
         }
     }
@@ -48,25 +59,36 @@ impl DrawableComponent for InboxComponent {
         area: Rect,
         focused: bool,
     ) -> anyhow::Result<()> {
+        let main_layout = Layout::default()
+            .direction(Direction::Vertical)
+            .constraints([Constraint::Length(3), Constraint::Length(5)])
+            .split(area);
+
         let inbox_layout = Layout::default()
             .direction(Direction::Horizontal)
-            .constraints([Constraint::Percentage(60), Constraint::Percentage(40)].as_ref())
-            .split(area);
+            .constraints([Constraint::Percentage(70), Constraint::Percentage(30)].as_ref())
+            .split(main_layout[1]);
 
         let list_layout = Layout::default()
             .direction(Direction::Vertical)
             .constraints(vec![Constraint::Percentage(50), Constraint::Percentage(50)])
             .split(inbox_layout[0]);
 
-        self.paper_directory_list.draw(
+        self.searchbar.draw(
+            f,
+            main_layout[0],
+            focused && matches!(self.focus, Focus::Searchbar),
+        )?;
+
+        self.managed_pdf_list.draw(
             f,
             list_layout[0],
-            focused && matches!(self.focus, Focus::PaperDirectoryList),
+            focused && matches!(self.focus, Focus::ManagedPdfList),
         )?;
-        self.existing_directory_list.draw(
+        self.unmanaged_pdf_list.draw(
             f,
             list_layout[1],
-            focused && matches!(self.focus, Focus::ExistingDirectoryList),
+            focused && matches!(self.focus, Focus::UnmanagedPdfList,),
         )?;
 
         self.pdf_detail.draw(
@@ -86,12 +108,12 @@ impl Component for InboxComponent {
         match key {
             Key::Up => {
                 // focus to paper
-                self.focus = Focus::PaperDirectoryList;
+                self.focus = Focus::ManagedPdfList;
                 return Ok(EventState::Consumed);
             }
             Key::Down => {
                 // focus to existing
-                self.focus = Focus::ExistingDirectoryList;
+                self.focus = Focus::UnmanagedPdfList;
                 return Ok(EventState::Consumed);
             }
             Key::Right => {
@@ -101,7 +123,7 @@ impl Component for InboxComponent {
             }
             Key::Left => {
                 // detailからどちらかにfocus
-                self.focus = Focus::PaperDirectoryList;
+                self.focus = Focus::ManagedPdfList;
                 return Ok(EventState::Consumed);
             }
             _ => Ok(EventState::NotConsumed),

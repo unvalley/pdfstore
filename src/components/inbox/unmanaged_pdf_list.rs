@@ -13,11 +13,11 @@ use crate::{
     key_config::KeyConfig,
 };
 
-pub struct PdfDetailComponent {
+pub struct UnmanagedPdfListComponent {
     key_config: KeyConfig,
 }
 
-impl PdfDetailComponent {
+impl UnmanagedPdfListComponent {
     pub fn new(key_config: KeyConfig) -> Self {
         Self {
             key_config: key_config.clone(),
@@ -25,42 +25,38 @@ impl PdfDetailComponent {
     }
 }
 
-impl DrawableComponent for PdfDetailComponent {
+impl DrawableComponent for UnmanagedPdfListComponent {
     fn draw<B: Backend>(
         &mut self,
         f: &mut Frame<B>,
         area: Rect,
         focused: bool,
     ) -> anyhow::Result<()> {
-        let key_style = Style::default().fg(Color::LightCyan);
-
-        let mut rows = vec![];
-        let row = Row::new(vec![Cell::from(Span::styled("".to_string(), key_style))]);
-        rows.push(row);
-
         let border_style = if focused {
             Style::default().fg(Color::LightGreen)
         } else {
             Style::default().fg(Color::Gray)
         };
 
-        let table = Table::new(rows)
+        let body = Paragraph::new(vec![Spans::from(Span::raw("Test"))])
+            .style(Style::default().fg(Color::LightCyan))
+            .alignment(Alignment::Left)
             .block(
                 Block::default()
                     .borders(Borders::ALL)
+                    .style(Style::default().fg(Color::White))
                     .border_type(BorderType::Plain)
                     .border_style(border_style)
-                    .title("Detail"),
-            )
-            .widths(&[Constraint::Length(11), Constraint::Min(20)])
-            .column_spacing(1);
+                    .title("ExisitingDirs"),
+            );
 
-        f.render_widget(table, area);
+        f.render_widget(body, area);
+
         Ok(())
     }
 }
 
-impl Component for PdfDetailComponent {
+impl Component for UnmanagedPdfListComponent {
     fn commands(&self) {}
 
     fn event(&mut self, key: Key) -> anyhow::Result<EventState> {

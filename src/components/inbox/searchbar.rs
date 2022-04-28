@@ -13,11 +13,11 @@ use crate::{
     key_config::KeyConfig,
 };
 
-pub struct ExistingDirectoryListComponent {
+pub struct SearchbarComponent {
     key_config: KeyConfig,
 }
 
-impl ExistingDirectoryListComponent {
+impl SearchbarComponent {
     pub fn new(key_config: KeyConfig) -> Self {
         Self {
             key_config: key_config.clone(),
@@ -25,27 +25,22 @@ impl ExistingDirectoryListComponent {
     }
 }
 
-impl DrawableComponent for ExistingDirectoryListComponent {
+impl DrawableComponent for SearchbarComponent {
     fn draw<B: Backend>(
         &mut self,
         f: &mut Frame<B>,
         area: Rect,
         focused: bool,
     ) -> anyhow::Result<()> {
-        let focused_check = if focused { "Focused" } else { "Not Focused" };
-        let body = Paragraph::new(vec![
-            Spans::from(Span::raw("Test")),
-            Spans::from(Span::raw("Test")),
-        ])
-        .style(Style::default().fg(Color::LightCyan))
-        .alignment(Alignment::Left)
-        .block(
-            Block::default()
-                .borders(Borders::ALL)
-                .style(Style::default().fg(Color::White))
-                .border_type(BorderType::Plain)
-                .title(focused_check),
-        );
+        let body = Paragraph::new(vec![Spans::from(Span::raw("Search"))])
+            .style(Style::default().fg(Color::LightCyan))
+            .alignment(Alignment::Left)
+            .block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .style(Style::default().fg(Color::White))
+                    .border_type(BorderType::Plain),
+            );
 
         f.render_widget(body, area);
 
@@ -53,7 +48,7 @@ impl DrawableComponent for ExistingDirectoryListComponent {
     }
 }
 
-impl Component for ExistingDirectoryListComponent {
+impl Component for SearchbarComponent {
     fn commands(&self) {}
 
     fn event(&mut self, key: Key) -> anyhow::Result<EventState> {

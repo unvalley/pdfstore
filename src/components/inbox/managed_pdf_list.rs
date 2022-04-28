@@ -13,40 +13,43 @@ use crate::{
     key_config::KeyConfig,
 };
 
-pub struct PaperDirectoryListComponent {
+pub struct ManagedPdfListComponent {
+    pub files: Vec<String>,
     key_config: KeyConfig,
 }
 
-impl PaperDirectoryListComponent {
+impl ManagedPdfListComponent {
     pub fn new(key_config: KeyConfig) -> Self {
         Self {
+            files: Vec::new(),
             key_config: key_config.clone(),
         }
     }
 }
 
-impl DrawableComponent for PaperDirectoryListComponent {
+impl DrawableComponent for ManagedPdfListComponent {
     fn draw<B: Backend>(
         &mut self,
         f: &mut Frame<B>,
         area: Rect,
         focused: bool,
     ) -> anyhow::Result<()> {
-        let focused_check = if focused { "Focused" } else { "Not Focused" };
+        let border_style = if focused {
+            Style::default().fg(Color::LightGreen)
+        } else {
+            Style::default().fg(Color::Gray)
+        };
 
-        let body = Paragraph::new(vec![
-            Spans::from(Span::raw("Test")),
-            Spans::from(Span::raw("Test")),
-        ])
-        .style(Style::default().fg(Color::LightCyan))
-        .alignment(Alignment::Left)
-        .block(
-            Block::default()
-                .borders(Borders::ALL)
-                .style(Style::default().fg(Color::White))
-                .border_type(BorderType::Plain)
-                .title(focused_check),
-        );
+        let body = Paragraph::new(vec![Spans::from(Span::raw("Test"))])
+            .style(Style::default().fg(Color::LightCyan))
+            .alignment(Alignment::Left)
+            .block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .border_type(BorderType::Plain)
+                    .border_style(border_style)
+                    .title("Paper"),
+            );
 
         f.render_widget(body, area);
 
@@ -54,7 +57,7 @@ impl DrawableComponent for PaperDirectoryListComponent {
     }
 }
 
-impl Component for PaperDirectoryListComponent {
+impl Component for ManagedPdfListComponent {
     fn commands(&self) {}
 
     fn event(&mut self, key: Key) -> anyhow::Result<EventState> {
