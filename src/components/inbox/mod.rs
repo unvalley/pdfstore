@@ -1,12 +1,12 @@
-pub mod unmanaged_pdf_list;
 pub mod managed_pdf_list;
 pub mod pdf_detail;
 pub mod searchbar;
+pub mod unmanaged_pdf_list;
 
-pub use unmanaged_pdf_list::UnmanagedPdfListComponent;
 pub use managed_pdf_list::ManagedPdfListComponent;
 pub use pdf_detail::PdfDetailComponent;
 pub use searchbar::SearchbarComponent;
+pub use unmanaged_pdf_list::UnmanagedPdfListComponent;
 
 use tui::{
     backend::Backend,
