@@ -13,19 +13,21 @@ use crate::{
     key_config::KeyConfig,
 };
 
-pub struct ExistingDirectoryListComponent {
+pub struct ManagedPdfListComponent {
+    pub files: Vec<String>,
     key_config: KeyConfig,
 }
 
-impl ExistingDirectoryListComponent {
+impl ManagedPdfListComponent {
     pub fn new(key_config: KeyConfig) -> Self {
         Self {
+            files: Vec::new(),
             key_config: key_config.clone(),
         }
     }
 }
 
-impl DrawableComponent for ExistingDirectoryListComponent {
+impl DrawableComponent for ManagedPdfListComponent {
     fn draw<B: Backend>(
         &mut self,
         f: &mut Frame<B>,
@@ -44,10 +46,9 @@ impl DrawableComponent for ExistingDirectoryListComponent {
             .block(
                 Block::default()
                     .borders(Borders::ALL)
-                    .style(Style::default().fg(Color::White))
                     .border_type(BorderType::Plain)
                     .border_style(border_style)
-                    .title("ExisitingDirs"),
+                    .title("Paper"),
             );
 
         f.render_widget(body, area);
@@ -56,7 +57,7 @@ impl DrawableComponent for ExistingDirectoryListComponent {
     }
 }
 
-impl Component for ExistingDirectoryListComponent {
+impl Component for ManagedPdfListComponent {
     fn commands(&self) {}
 
     fn event(&mut self, key: Key) -> anyhow::Result<EventState> {

@@ -13,11 +13,11 @@ use crate::{
     key_config::KeyConfig,
 };
 
-pub struct PaperDirectoryListComponent {
+pub struct UnmanagedPdfListComponent {
     key_config: KeyConfig,
 }
 
-impl PaperDirectoryListComponent {
+impl UnmanagedPdfListComponent {
     pub fn new(key_config: KeyConfig) -> Self {
         Self {
             key_config: key_config.clone(),
@@ -25,7 +25,7 @@ impl PaperDirectoryListComponent {
     }
 }
 
-impl DrawableComponent for PaperDirectoryListComponent {
+impl DrawableComponent for UnmanagedPdfListComponent {
     fn draw<B: Backend>(
         &mut self,
         f: &mut Frame<B>,
@@ -44,9 +44,10 @@ impl DrawableComponent for PaperDirectoryListComponent {
             .block(
                 Block::default()
                     .borders(Borders::ALL)
+                    .style(Style::default().fg(Color::White))
                     .border_type(BorderType::Plain)
                     .border_style(border_style)
-                    .title("Paper"),
+                    .title("ExisitingDirs"),
             );
 
         f.render_widget(body, area);
@@ -55,7 +56,7 @@ impl DrawableComponent for PaperDirectoryListComponent {
     }
 }
 
-impl Component for PaperDirectoryListComponent {
+impl Component for UnmanagedPdfListComponent {
     fn commands(&self) {}
 
     fn event(&mut self, key: Key) -> anyhow::Result<EventState> {
