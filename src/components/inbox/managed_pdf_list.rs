@@ -6,6 +6,8 @@ use tui::{
     widgets::{Block, BorderType, Borders, Cell, Paragraph, Row, Table},
     Frame,
 };
+use walkdir::{WalkDir, DirEntry};
+use std::fs;
 
 use crate::{
     components::{Component, DrawableComponent, EventState},
@@ -25,7 +27,22 @@ impl ManagedPdfListComponent {
             key_config: key_config.clone(),
         }
     }
+
+    fn load_files(&mut self) -> anyhow::Result<Vec<DirEntry>> {
+        let mut a = vec![];
+        for file in WalkDir::new("/").into_iter().filter_map(|file| file.ok()) {
+            a.push(file);
+        };
+        Ok(a)
+    }
+
+    pub fn update(&mut self, config: KeyConfig) -> anyhow::Result<()> {
+        // 
+
+        Ok(())
+    }
 }
+
 
 impl DrawableComponent for ManagedPdfListComponent {
     fn draw<B: Backend>(
