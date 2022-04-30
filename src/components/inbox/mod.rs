@@ -1,13 +1,16 @@
 pub mod managed_pdf_list;
 pub mod pdf_detail;
+pub mod pdf_file_loader;
 pub mod searchbar;
 pub mod unmanaged_pdf_list;
 
 pub use managed_pdf_list::ManagedPdfListComponent;
 pub use pdf_detail::PdfDetailComponent;
+pub use pdf_file_loader::PdfFileLoader;
 pub use searchbar::SearchbarComponent;
 pub use unmanaged_pdf_list::UnmanagedPdfListComponent;
 
+use std::path::Path;
 use tui::{
     backend::Backend,
     layout::{Alignment, Constraint, Direction, Layout, Rect},
@@ -49,6 +52,24 @@ impl InboxComponent {
             focus: Focus::ManagedPdfList,
             key_config,
         }
+    }
+
+    pub async fn update(&mut self) -> anyhow::Result<()> {
+        let managed_file_path = Path::new("/Users/unvalley/papers");
+        let managed_pdf_files = self.managed_pdf_list.load_files(managed_file_path);
+        match managed_pdf_files {
+            Ok(pdf_files) => self.managed_pdf_list.update(pdf_files),
+            Err(_) => todo!(),
+        }
+
+        let unmanaged_file_path = Path::new("/Users/unvalley/Downloads");
+        let unmanaged_pdf_files = self.unmanaged_pdf_list.load_files(unmanaged_file_path);
+        match unmanaged_pdf_files {
+            Ok(pdf_files) => self.unmanaged_pdf_list.update(pdf_files),
+            Err(_) => todo!(),
+        }
+
+        Ok(())
     }
 }
 

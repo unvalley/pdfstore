@@ -5,5 +5,4 @@ pub mod key;
 
 pub enum InputEvent {
     Input(Key),
-    Tick,
 }

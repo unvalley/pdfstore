@@ -10,6 +10,7 @@ use tui::Terminal;
 pub mod actions;
 pub mod app;
 pub mod components;
+pub mod domain;
 pub mod inputs;
 pub mod key_config;
 pub mod state;
@@ -36,9 +37,10 @@ async fn main() -> anyhow::Result<()> {
     let tick_rate = Duration::from_millis(200);
     let events = Events::new(tick_rate);
 
-    loop {
-        let mut app = app.borrow_mut();
+    let mut app = app.borrow_mut();
+    app.update_inbox_list().await?;
 
+    loop {
         terminal.draw(|f| {
             if let Err(err) = app.draw(f) {
                 log::error!("failed to draw: {:?}", err);
@@ -49,13 +51,12 @@ async fn main() -> anyhow::Result<()> {
         match events.next()? {
             InputEvent::Input(key) => match app.event(key).await {
                 Ok(state) => {
-                    if !state.is_consumed() && (key == app.key_config.quit) {
+                    if !state.is_consumed() {
                         break;
                     }
                 }
                 Err(err) => break,
             },
-            InputEvent::Tick => (),
         }
 
         if app.is_quit() {
