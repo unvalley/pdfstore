@@ -11,7 +11,9 @@ impl Default for PdfFileLoader {
 }
 
 impl PdfFileLoader {
-    pub fn new() -> Self { Self {} }
+    pub fn new() -> Self {
+        Self {}
+    }
 
     fn is_pdf(&mut self, entry: &fs::DirEntry) -> bool {
         entry

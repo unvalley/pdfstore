@@ -55,6 +55,7 @@ impl InboxComponent {
     }
 
     pub async fn update(&mut self) -> anyhow::Result<()> {
+        // TODO: refactor
         let managed_file_path = Path::new("/Users/unvalley/papers");
         let managed_pdf_files = self.managed_pdf_list.load_files(managed_file_path);
         match managed_pdf_files {

@@ -24,6 +24,14 @@ pub trait Component {
     fn focus(&mut self, _focus: bool) {}
 }
 
+#[derive(Copy, Clone)]
+pub enum ScrollType {
+    Up,
+    Down,
+    // PageUp,
+    // PageDown
+}
+
 #[derive(PartialEq)]
 pub enum CommandBlocking {
     Blocking,
