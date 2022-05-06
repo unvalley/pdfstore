@@ -9,7 +9,11 @@ use tui::{
 };
 
 use crate::{
-    components::{Component, DrawableComponent, EventState, ScrollType},
+    components::{
+        utils::{vertical_scroll::VerticalScroll, scrollbar::draw_scrollbar},
+        Component, DrawableComponent, EventState,
+        ScrollType,
+    },
     domain::pdf_file::PdfFile,
     inputs::key::Key,
     key_config::KeyConfig,
@@ -22,6 +26,7 @@ pub struct UnmanagedPdfListComponent {
     pdf_file_loader: PdfFileLoader,
     list_state: ListState,
     selection: usize,
+    scroll: VerticalScroll,
     key_config: KeyConfig,
 }
 
@@ -32,6 +37,7 @@ impl UnmanagedPdfListComponent {
             pdf_file_loader: PdfFileLoader::new(),
             list_state: ListState::default(),
             selection: 0,
+            scroll: VerticalScroll::new(),
             key_config: key_config.clone(),
         }
     }
@@ -104,7 +110,7 @@ impl DrawableComponent for UnmanagedPdfListComponent {
             );
 
         f.render_stateful_widget(list, area, &mut self.list_state);
-        // self.scroll.draw(f, area, self.selection);
+        self.scroll.draw(f, area);
 
         Ok(())
     }
