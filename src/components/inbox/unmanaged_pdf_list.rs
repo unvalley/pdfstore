@@ -10,9 +10,8 @@ use tui::{
 
 use crate::{
     components::{
-        utils::{vertical_scroll::VerticalScroll, scrollbar::draw_scrollbar},
-        Component, DrawableComponent, EventState,
-        ScrollType,
+        utils::{scrollbar::draw_scrollbar, vertical_scroll::VerticalScroll},
+        Component, DrawableComponent, EventState, ScrollType,
     },
     domain::pdf_file::PdfFile,
     inputs::key::Key,
@@ -56,8 +55,11 @@ impl UnmanagedPdfListComponent {
             ScrollType::Up => self.selection.saturating_sub(speed_int),
             ScrollType::Down => self.selection.saturating_add(speed_int),
         };
-
-        let new_selection = cmp::min(new_selection, self.pdf_files.len());
+        let selection_max = self.pdf_files.len().saturating_sub(1);
+        if selection_max < new_selection {
+            return Ok(false)
+        }
+        let new_selection = cmp::min(new_selection, selection_max);
         let needs_update = new_selection != self.selection;
         self.selection = new_selection;
         Ok(needs_update)
@@ -71,12 +73,6 @@ impl DrawableComponent for UnmanagedPdfListComponent {
         area: Rect,
         focused: bool,
     ) -> anyhow::Result<()> {
-        let border_style = if focused {
-            Style::default().fg(Color::LightGreen)
-        } else {
-            Style::default().fg(Color::Gray)
-        };
-
         let items: Vec<_> = self
             .pdf_files
             .iter()
@@ -91,21 +87,25 @@ impl DrawableComponent for UnmanagedPdfListComponent {
         // TODO: unmanaged directories should be multiple
         let title = format!("{} {}", "Unmanaged", "[~/Downloads]");
 
-        let list_state_idx = Some(0);
+        let list_state_idx = Some(self.selection);
         self.list_state.select(list_state_idx);
 
         let list = List::new(items)
             .highlight_style(
                 Style::default()
-                    .bg(Color::Yellow)
-                    .fg(Color::Black)
+                    .bg(Color::Magenta)
+                    .fg(Color::White)
                     .add_modifier(Modifier::BOLD),
             )
             .block(
                 Block::default()
                     .borders(Borders::ALL)
                     .border_type(BorderType::Plain)
-                    .border_style(border_style)
+                    .border_style(if focused {
+                        Style::default().fg(Color::Magenta)
+                    } else {
+                        Style::default().fg(Color::Gray)
+                    })
                     .title(title),
             );
 
@@ -120,6 +120,7 @@ impl Component for UnmanagedPdfListComponent {
     fn commands(&self) {}
 
     fn event(&mut self, key: Key) -> anyhow::Result<EventState> {
+        // key_config対応
         let selection_changed = if key == self.key_config.scroll_down {
             self.move_selection(ScrollType::Down)?
         } else if key == self.key_config.scroll_up {

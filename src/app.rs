@@ -4,11 +4,17 @@ use tui::{
     Frame,
 };
 
-use crate::key_config::KeyConfig;
 use crate::state::AppState;
 use crate::{
     actions::{Action, Actions},
     components::{inbox::InboxComponent, DrawableComponent},
+};
+use crate::{
+    components::{
+        command::{self, CommandInfo},
+        inbox::InboxFocus,
+    },
+    key_config::KeyConfig,
 };
 use crate::{
     components::{Component, EventState},
@@ -23,9 +29,10 @@ pub enum AppReturn {
     Continue,
 }
 
+// Before implement InboxComponent, I've though that we need some other components.
+// But, I don't need other components currently. So I can flatten InboxComponent (struct-App may have each fields of InboxComponent).
 enum Focus {
     Inbox,
-    Search,
 }
 
 /// if you want to need feature or screen, add it Focus and App
@@ -70,6 +77,14 @@ impl App {
         Ok(())
     }
 
+    // fn commands(&self) -> Vec<CommandInfo> {
+    //     let mut res = vec![
+    //         CommandInfo::new(command::scroll(&self.key_config)),
+    //         CommandInfo::new(command::move_focus(&self.key_config)),
+    //     ];
+    //     res
+    // }
+
     fn check_quit(&mut self, key: Key) -> bool {
         if key == self.key_config.quit || key == self.key_config.exit {
             self.do_quit = true;
@@ -110,13 +125,20 @@ impl App {
 
     /// handling focus in each component
     pub fn focus_components(&mut self, key: Key) -> anyhow::Result<EventState> {
-        match self.focus {
-            Focus::Inbox => {
-                if self.inbox.event(key)?.is_consumed() {
-                    return Ok(EventState::Consumed);
-                }
+        match self.inbox.focus {
+            InboxFocus::ManagedPdfList => {
+                let state = self.inbox.managed_pdf_list.event(key)?;
+                return Ok(state);
             }
-            Focus::Search => return Ok(EventState::Consumed),
+            InboxFocus::UnmanagedPdfList => {
+                let state = self.inbox.unmanaged_pdf_list.event(key)?;
+                return Ok(state);
+            }
+            InboxFocus::PdfDetail => {}
+            InboxFocus::Searchbar => {}
+        }
+        if self.inbox.event(key)?.is_consumed() {
+            return Ok(EventState::Consumed);
         }
         Ok(EventState::NotConsumed)
     }
@@ -127,14 +149,16 @@ impl App {
     }
 
     pub async fn components_event(&mut self, key: Key) -> anyhow::Result<EventState> {
-        // match self.focus {
-        //     Focus::Inbox => {
-        //         self.update_inbox_list().await?;
-        //         return Ok(EventState::Consumed);
-        //     }
-        //     Focus::Search => todo!(),
-        // }
-        Ok(EventState::NotConsumed)
+        match self.focus {
+            Focus::Inbox => {
+                let state = self.inbox.event(key)?;
+                if key == self.key_config.enter {
+                    self.update_inbox_list().await?;
+                    return Ok(EventState::Consumed);
+                }
+                Ok(state)
+            }
+        }
     }
 
     pub fn actions(&self) -> &Actions {

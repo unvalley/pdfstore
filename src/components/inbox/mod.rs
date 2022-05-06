@@ -24,7 +24,7 @@ use crate::components::{Component, DrawableComponent, EventState};
 use crate::inputs::key::Key;
 use crate::key_config::KeyConfig;
 
-enum Focus {
+pub enum InboxFocus {
     Searchbar,
     /// ~/paper
     ManagedPdfList,
@@ -34,11 +34,11 @@ enum Focus {
 }
 
 pub struct InboxComponent {
-    searchbar: SearchbarComponent,
-    managed_pdf_list: ManagedPdfListComponent,
-    unmanaged_pdf_list: UnmanagedPdfListComponent,
-    pdf_detail: PdfDetailComponent,
-    focus: Focus,
+    pub searchbar: SearchbarComponent,
+    pub managed_pdf_list: ManagedPdfListComponent,
+    pub unmanaged_pdf_list: UnmanagedPdfListComponent,
+    pub pdf_detail: PdfDetailComponent,
+    pub focus: InboxFocus,
     key_config: KeyConfig,
 }
 
@@ -49,7 +49,7 @@ impl InboxComponent {
             managed_pdf_list: ManagedPdfListComponent::new(key_config.clone()),
             unmanaged_pdf_list: UnmanagedPdfListComponent::new(key_config.clone()),
             pdf_detail: PdfDetailComponent::new(key_config.clone()),
-            focus: Focus::ManagedPdfList,
+            focus: InboxFocus::ManagedPdfList,
             key_config,
         }
     }
@@ -99,24 +99,24 @@ impl DrawableComponent for InboxComponent {
         self.searchbar.draw(
             f,
             main_layout[0],
-            focused && matches!(self.focus, Focus::Searchbar),
+            focused && matches!(self.focus, InboxFocus::Searchbar),
         )?;
 
         self.managed_pdf_list.draw(
             f,
             list_layout[0],
-            focused && matches!(self.focus, Focus::ManagedPdfList),
+            focused && matches!(self.focus, InboxFocus::ManagedPdfList),
         )?;
         self.unmanaged_pdf_list.draw(
             f,
             list_layout[1],
-            focused && matches!(self.focus, Focus::UnmanagedPdfList,),
+            focused && matches!(self.focus, InboxFocus::UnmanagedPdfList,),
         )?;
 
         self.pdf_detail.draw(
             f,
             inbox_layout[1],
-            focused && matches!(self.focus, Focus::PdfDetail),
+            focused && matches!(self.focus, InboxFocus::PdfDetail),
         )?;
 
         Ok(())
@@ -130,22 +130,22 @@ impl Component for InboxComponent {
         match key {
             Key::Up => {
                 // focus to paper
-                self.focus = Focus::ManagedPdfList;
+                self.focus = InboxFocus::ManagedPdfList;
                 return Ok(EventState::Consumed);
             }
             Key::Down => {
                 // focus to existing
-                self.focus = Focus::UnmanagedPdfList;
+                self.focus = InboxFocus::UnmanagedPdfList;
                 return Ok(EventState::Consumed);
             }
             Key::Right => {
                 // detailにfocus
-                self.focus = Focus::PdfDetail;
+                self.focus = InboxFocus::PdfDetail;
                 return Ok(EventState::Consumed);
             }
             Key::Left => {
                 // detailからどちらかにfocus
-                self.focus = Focus::ManagedPdfList;
+                self.focus = InboxFocus::ManagedPdfList;
                 return Ok(EventState::Consumed);
             }
             _ => Ok(EventState::NotConsumed),

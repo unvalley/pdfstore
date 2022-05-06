@@ -9,7 +9,10 @@ use tui::{
 };
 
 use crate::{
-    components::{Component, DrawableComponent, EventState, ScrollType},
+    components::{
+        utils::vertical_scroll::VerticalScroll, Component, DrawableComponent, EventState,
+        ScrollType,
+    },
     domain::pdf_file::PdfFile,
     inputs::key::Key,
     key_config::KeyConfig,
@@ -22,6 +25,7 @@ pub struct ManagedPdfListComponent {
     pdf_file_loader: PdfFileLoader,
     list_state: ListState,
     selection: usize,
+    scroll: VerticalScroll,
     key_config: KeyConfig,
 }
 
@@ -32,6 +36,7 @@ impl ManagedPdfListComponent {
             pdf_file_loader: PdfFileLoader::new(),
             list_state: ListState::default(),
             selection: 0,
+            scroll: VerticalScroll::new(),
             key_config: key_config.clone(),
         }
     }
@@ -50,8 +55,11 @@ impl ManagedPdfListComponent {
             ScrollType::Up => self.selection.saturating_sub(speed_int),
             ScrollType::Down => self.selection.saturating_add(speed_int),
         };
-
-        let new_selection = cmp::min(new_selection, self.pdf_files.len());
+        let selection_max = self.pdf_files.len().saturating_sub(1);
+        if selection_max < new_selection {
+            return Ok(false)
+        }
+        let new_selection = cmp::min(new_selection, selection_max);
         let needs_update = new_selection != self.selection;
         self.selection = new_selection;
         Ok(needs_update)
@@ -65,12 +73,6 @@ impl DrawableComponent for ManagedPdfListComponent {
         area: Rect,
         focused: bool,
     ) -> anyhow::Result<()> {
-        let border_style = if focused {
-            Style::default().fg(Color::LightGreen)
-        } else {
-            Style::default().fg(Color::Gray)
-        };
-
         let items: Vec<_> = self
             .pdf_files
             .iter()
@@ -85,26 +87,30 @@ impl DrawableComponent for ManagedPdfListComponent {
         // TODO: unmanaged directories should be multiple
         let title = format!("{} {}", "Managed", "[~/papers]");
 
-        let list_state_idx = Some(0);
+        let list_state_idx = Some(self.selection);
         self.list_state.select(list_state_idx);
 
         let list = List::new(items)
             .highlight_style(
                 Style::default()
-                    .bg(Color::Yellow)
-                    .fg(Color::Black)
+                    .bg(Color::Cyan)
+                    .fg(Color::White)
                     .add_modifier(Modifier::BOLD),
             )
             .block(
                 Block::default()
                     .borders(Borders::ALL)
                     .border_type(BorderType::Plain)
-                    .border_style(border_style)
+                    .border_style(if focused {
+                        Style::default().fg(Color::Cyan)
+                    } else {
+                        Style::default().fg(Color::Gray)
+                    })
                     .title(title),
             );
 
         f.render_stateful_widget(list, area, &mut self.list_state);
-        // self.scroll.draw(f, area, self.selection);
+        self.scroll.draw(f, area);
 
         Ok(())
     }
