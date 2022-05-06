@@ -11,6 +11,8 @@ pub struct KeyConfig {
     pub scroll_up: Key,
     pub scroll_down: Key,
     //
+    pub exit_popup: Key,
+    //
     pub enter: Key,
     pub exit: Key,
     pub quit: Key,
@@ -25,6 +27,7 @@ impl Default for KeyConfig {
             focus_down: Key::Down,
             scroll_up: Key::Char('k'),
             scroll_down: Key::Char('j'),
+            exit_popup: Key::Esc,
             enter: Key::Enter,
             exit: Key::Ctrl('c'),
             quit: Key::Char('q'),

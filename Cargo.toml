@@ -12,7 +12,9 @@ license = "MIT"
 [dependencies]
 anyhow = "1.0.56"
 crossterm = "0.23.2"
+easy-cast = "0.4.4"
 log = "0.4.16"
 tokio = {version = "1.17.0", features = ["full"]}
 tui = {version = "0.17.0", features = ["crossterm"], default-features = false}
 tui-logger = "0.7.1"
+walkdir = "2.3.2"

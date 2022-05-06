@@ -1,6 +1,7 @@
 pub mod command;
 pub mod inbox;
 pub mod pdf_import_popup;
+pub mod utils;
 
 use tui::{backend::Backend, layout::Rect, Frame};
 
@@ -22,6 +23,14 @@ pub trait Component {
         false
     }
     fn focus(&mut self, _focus: bool) {}
+}
+
+#[derive(Copy, Clone)]
+pub enum ScrollType {
+    Up,
+    Down,
+    // PageUp,
+    // PageDown
 }
 
 #[derive(PartialEq)]

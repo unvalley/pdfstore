@@ -24,7 +24,6 @@ impl CommandInfo {
 
 static CMD_GROUP_GENERAL: &str = "-- General --";
 static CMD_GROUP_INBOX: &str = "-- Inbox --";
-// static CMD_GROUP_SEARCH: &str = "-- Search --";
 
 pub fn scroll(key: &KeyConfig) -> CommandText {
     CommandText::new(

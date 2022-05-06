@@ -28,7 +28,6 @@ impl Events {
                         event_tx.send(InputEvent::Input(key)).unwrap();
                     }
                 }
-                event_tx.send(InputEvent::Tick).unwrap();
             }
         });
 

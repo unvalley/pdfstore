@@ -1,13 +1,16 @@
 pub mod managed_pdf_list;
 pub mod pdf_detail;
+pub mod pdf_file_loader;
 pub mod searchbar;
 pub mod unmanaged_pdf_list;
 
 pub use managed_pdf_list::ManagedPdfListComponent;
 pub use pdf_detail::PdfDetailComponent;
+pub use pdf_file_loader::PdfFileLoader;
 pub use searchbar::SearchbarComponent;
 pub use unmanaged_pdf_list::UnmanagedPdfListComponent;
 
+use std::path::Path;
 use tui::{
     backend::Backend,
     layout::{Alignment, Constraint, Direction, Layout, Rect},
@@ -21,7 +24,7 @@ use crate::components::{Component, DrawableComponent, EventState};
 use crate::inputs::key::Key;
 use crate::key_config::KeyConfig;
 
-enum Focus {
+pub enum InboxFocus {
     Searchbar,
     /// ~/paper
     ManagedPdfList,
@@ -31,11 +34,11 @@ enum Focus {
 }
 
 pub struct InboxComponent {
-    searchbar: SearchbarComponent,
-    managed_pdf_list: ManagedPdfListComponent,
-    unmanaged_pdf_list: UnmanagedPdfListComponent,
-    pdf_detail: PdfDetailComponent,
-    focus: Focus,
+    pub searchbar: SearchbarComponent,
+    pub managed_pdf_list: ManagedPdfListComponent,
+    pub unmanaged_pdf_list: UnmanagedPdfListComponent,
+    pub pdf_detail: PdfDetailComponent,
+    pub focus: InboxFocus,
     key_config: KeyConfig,
 }
 
@@ -46,9 +49,28 @@ impl InboxComponent {
             managed_pdf_list: ManagedPdfListComponent::new(key_config.clone()),
             unmanaged_pdf_list: UnmanagedPdfListComponent::new(key_config.clone()),
             pdf_detail: PdfDetailComponent::new(key_config.clone()),
-            focus: Focus::ManagedPdfList,
+            focus: InboxFocus::ManagedPdfList,
             key_config,
         }
+    }
+
+    pub async fn update(&mut self) -> anyhow::Result<()> {
+        // TODO: refactor
+        let managed_file_path = Path::new("/Users/unvalley/papers");
+        let managed_pdf_files = self.managed_pdf_list.load_files(managed_file_path);
+        match managed_pdf_files {
+            Ok(pdf_files) => self.managed_pdf_list.update(pdf_files),
+            Err(_) => todo!(),
+        }
+
+        let unmanaged_file_path = Path::new("/Users/unvalley/Downloads");
+        let unmanaged_pdf_files = self.unmanaged_pdf_list.load_files(unmanaged_file_path);
+        match unmanaged_pdf_files {
+            Ok(pdf_files) => self.unmanaged_pdf_list.update(pdf_files),
+            Err(_) => todo!(),
+        }
+
+        Ok(())
     }
 }
 
@@ -77,24 +99,24 @@ impl DrawableComponent for InboxComponent {
         self.searchbar.draw(
             f,
             main_layout[0],
-            focused && matches!(self.focus, Focus::Searchbar),
+            focused && matches!(self.focus, InboxFocus::Searchbar),
         )?;
 
         self.managed_pdf_list.draw(
             f,
             list_layout[0],
-            focused && matches!(self.focus, Focus::ManagedPdfList),
+            focused && matches!(self.focus, InboxFocus::ManagedPdfList),
         )?;
         self.unmanaged_pdf_list.draw(
             f,
             list_layout[1],
-            focused && matches!(self.focus, Focus::UnmanagedPdfList,),
+            focused && matches!(self.focus, InboxFocus::UnmanagedPdfList,),
         )?;
 
         self.pdf_detail.draw(
             f,
             inbox_layout[1],
-            focused && matches!(self.focus, Focus::PdfDetail),
+            focused && matches!(self.focus, InboxFocus::PdfDetail),
         )?;
 
         Ok(())
@@ -108,22 +130,22 @@ impl Component for InboxComponent {
         match key {
             Key::Up => {
                 // focus to paper
-                self.focus = Focus::ManagedPdfList;
+                self.focus = InboxFocus::ManagedPdfList;
                 return Ok(EventState::Consumed);
             }
             Key::Down => {
                 // focus to existing
-                self.focus = Focus::UnmanagedPdfList;
+                self.focus = InboxFocus::UnmanagedPdfList;
                 return Ok(EventState::Consumed);
             }
             Key::Right => {
                 // detailにfocus
-                self.focus = Focus::PdfDetail;
+                self.focus = InboxFocus::PdfDetail;
                 return Ok(EventState::Consumed);
             }
             Key::Left => {
                 // detailからどちらかにfocus
-                self.focus = Focus::ManagedPdfList;
+                self.focus = InboxFocus::ManagedPdfList;
                 return Ok(EventState::Consumed);
             }
             _ => Ok(EventState::NotConsumed),
