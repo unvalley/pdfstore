@@ -57,7 +57,7 @@ impl ManagedPdfListComponent {
         };
         let selection_max = self.pdf_files.len().saturating_sub(1);
         if selection_max < new_selection {
-            return Ok(false)
+            return Ok(false);
         }
         let new_selection = cmp::min(new_selection, selection_max);
         let needs_update = new_selection != self.selection;
