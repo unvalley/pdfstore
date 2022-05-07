@@ -1,22 +1,21 @@
 pub mod managed_pdf_list;
 pub mod pdf_detail;
 pub mod pdf_file_loader;
+pub mod pdf_import_popup;
 pub mod searchbar;
 pub mod unmanaged_pdf_list;
 
 pub use managed_pdf_list::ManagedPdfListComponent;
 pub use pdf_detail::PdfDetailComponent;
 pub use pdf_file_loader::PdfFileLoader;
+pub use pdf_import_popup::PdfImportPopup;
 pub use searchbar::SearchbarComponent;
 pub use unmanaged_pdf_list::UnmanagedPdfListComponent;
 
 use std::path::Path;
 use tui::{
     backend::Backend,
-    layout::{Alignment, Constraint, Direction, Layout, Rect},
-    style::{Color, Style},
-    text::{Span, Spans},
-    widgets::{Block, BorderType, Borders, Cell, Paragraph, Row, Table},
+    layout::{Constraint, Direction, Layout, Rect},
     Frame,
 };
 

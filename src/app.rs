@@ -21,8 +21,6 @@ use crate::{
     inputs::key::Key,
 };
 
-use crate::components::pdf_import_popup::PdfImportPopup;
-
 #[derive(Debug, PartialEq, Eq)]
 pub enum AppReturn {
     Exit,
@@ -41,7 +39,6 @@ pub struct App {
     actions: Actions,
     state: AppState,
     inbox: InboxComponent,
-    pdf_import_popup: PdfImportPopup,
     focus: Focus,
     pub key_config: KeyConfig,
     do_quit: bool,
@@ -57,7 +54,6 @@ impl App {
             actions,
             state,
             inbox: InboxComponent::new(key_config.clone()),
-            pdf_import_popup: PdfImportPopup::new(),
             focus: Focus::Inbox,
             key_config,
             do_quit: false,

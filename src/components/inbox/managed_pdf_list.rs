@@ -10,8 +10,8 @@ use tui::{
 
 use crate::{
     components::{
-        utils::vertical_scroll::VerticalScroll, Component, DrawableComponent, EventState,
-        ScrollType,
+        inbox::PdfImportPopup, utils::vertical_scroll::VerticalScroll, Component,
+        DrawableComponent, EventState, ScrollType,
     },
     domain::pdf_file::PdfFile,
     inputs::key::Key,
@@ -23,6 +23,7 @@ use super::pdf_file_loader::PdfFileLoader;
 pub struct ManagedPdfListComponent {
     pub pdf_files: Vec<PdfFile>,
     pdf_file_loader: PdfFileLoader,
+    pdf_import_popup: PdfImportPopup,
     list_state: ListState,
     selection: usize,
     scroll: VerticalScroll,
@@ -34,6 +35,7 @@ impl ManagedPdfListComponent {
         Self {
             pdf_files: Vec::new(),
             pdf_file_loader: PdfFileLoader::new(),
+            pdf_import_popup: PdfImportPopup::new(key_config.clone()),
             list_state: ListState::default(),
             selection: 0,
             scroll: VerticalScroll::new(),
@@ -63,6 +65,12 @@ impl ManagedPdfListComponent {
         let needs_update = new_selection != self.selection;
         self.selection = new_selection;
         Ok(needs_update)
+    }
+
+    /// How to give f and rect here?
+    fn show_import_popup(&mut self) -> anyhow::Result<EventState> {
+        self.pdf_import_popup.draw(f, rect, true);
+        Ok(EventState::Consumed)
     }
 }
 
@@ -120,6 +128,11 @@ impl Component for ManagedPdfListComponent {
     fn commands(&self) {}
 
     fn event(&mut self, key: Key) -> anyhow::Result<EventState> {
+        if key == self.key_config.enter {
+            let state = self.show_import_popup()?;
+            return Ok(state);
+        }
+
         let selection_changed = if key == self.key_config.scroll_down {
             self.move_selection(ScrollType::Down)?
         } else if key == self.key_config.scroll_up {
@@ -129,8 +142,8 @@ impl Component for ManagedPdfListComponent {
         };
 
         match selection_changed {
-            true => Ok(EventState::Consumed),
-            false => Ok(EventState::NotConsumed),
+            true => return Ok(EventState::Consumed),
+            false => return Ok(EventState::NotConsumed),
         }
     }
 }
