@@ -8,7 +8,7 @@ pub mod unmanaged_pdf_list;
 pub use managed_pdf_list::ManagedPdfListComponent;
 pub use pdf_detail::PdfDetailComponent;
 pub use pdf_file_loader::PdfFileLoader;
-pub use pdf_import_popup::PdfImportPopup;
+pub use pdf_import_popup::PdfImportPopupComponent;
 pub use searchbar::SearchbarComponent;
 pub use unmanaged_pdf_list::UnmanagedPdfListComponent;
 
@@ -16,6 +16,7 @@ use std::path::Path;
 use tui::{
     backend::Backend,
     layout::{Constraint, Direction, Layout, Rect},
+    widgets::{Block, Borders, Clear},
     Frame,
 };
 
@@ -29,7 +30,8 @@ pub enum InboxFocus {
     ManagedPdfList,
     /// e.g. Downloads/, Documents/
     UnmanagedPdfList,
-    PdfDetail,
+    ImportPopup,
+    // PdfDetail,
 }
 
 pub struct InboxComponent {
@@ -37,7 +39,9 @@ pub struct InboxComponent {
     pub managed_pdf_list: ManagedPdfListComponent,
     pub unmanaged_pdf_list: UnmanagedPdfListComponent,
     pub pdf_detail: PdfDetailComponent,
+    pub pdf_import_popup: PdfImportPopupComponent,
     pub focus: InboxFocus,
+    pub show_import_popup: bool,
     key_config: KeyConfig,
 }
 
@@ -48,7 +52,10 @@ impl InboxComponent {
             managed_pdf_list: ManagedPdfListComponent::new(key_config.clone()),
             unmanaged_pdf_list: UnmanagedPdfListComponent::new(key_config.clone()),
             pdf_detail: PdfDetailComponent::new(key_config.clone()),
+            pdf_import_popup: PdfImportPopupComponent::new(key_config.clone()),
+            // ui state
             focus: InboxFocus::ManagedPdfList,
+            show_import_popup: false,
             key_config,
         }
     }
@@ -59,14 +66,14 @@ impl InboxComponent {
         let managed_pdf_files = self.managed_pdf_list.load_files(managed_file_path);
         match managed_pdf_files {
             Ok(pdf_files) => self.managed_pdf_list.update(pdf_files),
-            Err(_) => todo!(),
+            Err(e) => panic!("Tried to load pdf files but an error occured: {:?}", e),
         }
 
         let unmanaged_file_path = Path::new("/Users/unvalley/Downloads");
         let unmanaged_pdf_files = self.unmanaged_pdf_list.load_files(unmanaged_file_path);
         match unmanaged_pdf_files {
             Ok(pdf_files) => self.unmanaged_pdf_list.update(pdf_files),
-            Err(_) => todo!(),
+            Err(e) => panic!("Tried to load pdf files but an error occured: {:?}", e),
         }
 
         Ok(())
@@ -87,7 +94,8 @@ impl DrawableComponent for InboxComponent {
 
         let inbox_layout = Layout::default()
             .direction(Direction::Horizontal)
-            .constraints([Constraint::Percentage(70), Constraint::Percentage(30)].as_ref())
+            // if we use PdfDetailComponent, use [Constraint::Percentage(70), Constraint::Percentage(30)]
+            .constraints([Constraint::Percentage(100)].as_ref())
             .split(main_layout[1]);
 
         let list_layout = Layout::default()
@@ -112,42 +120,93 @@ impl DrawableComponent for InboxComponent {
             focused && matches!(self.focus, InboxFocus::UnmanagedPdfList,),
         )?;
 
-        self.pdf_detail.draw(
-            f,
-            inbox_layout[1],
-            focused && matches!(self.focus, InboxFocus::PdfDetail),
-        )?;
+        // How to pass the pdf info data
+        if self.show_import_popup {
+            let selected_pdf = self.managed_pdf_list.find_selected_file();
+            let area = centered_rect(80, 50, f.size());
+
+            f.render_widget(Clear, area);
+            f.render_widget(
+                Block::default()
+                    .title(&*selected_pdf.file_name)
+                    .borders(Borders::ALL),
+                area,
+            );
+        }
 
         Ok(())
     }
+}
+/// helper function to create a centered rect using up certain percentage of the available rect `r`
+fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
+    let popup_layout = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints(
+            [
+                Constraint::Percentage((100 - percent_y) / 2),
+                Constraint::Percentage(percent_y),
+                Constraint::Percentage((100 - percent_y) / 2),
+            ]
+            .as_ref(),
+        )
+        .split(r);
+
+    Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints(
+            [
+                Constraint::Percentage((100 - percent_x) / 2),
+                Constraint::Percentage(percent_x),
+                Constraint::Percentage((100 - percent_x) / 2),
+            ]
+            .as_ref(),
+        )
+        .split(popup_layout[1])[1]
 }
 
 impl Component for InboxComponent {
     fn commands(&self) {}
 
     fn event(&mut self, key: Key) -> anyhow::Result<EventState> {
+        let is_focusing_pdf_list = matches!(self.focus, InboxFocus::ManagedPdfList)
+            || matches!(self.focus, InboxFocus::UnmanagedPdfList);
+
+        // REFACTOR: Is correct here to handle keys?
         match key {
-            Key::Up => {
-                // focus to paper
-                self.focus = InboxFocus::ManagedPdfList;
-                return Ok(EventState::Consumed);
+            Key::Enter => {
+                if is_focusing_pdf_list {
+                    self.show_import_popup = true;
+                    self.focus = InboxFocus::ImportPopup;
+                    return Ok(EventState::Consumed);
+                }
+                Ok(EventState::NotConsumed)
             }
-            Key::Down => {
-                // focus to existing
-                self.focus = InboxFocus::UnmanagedPdfList;
-                return Ok(EventState::Consumed);
+            Key::Esc => {
+                if matches!(self.focus, InboxFocus::ImportPopup) {
+                    self.show_import_popup = false;
+                    // TODO: wanna make to focus before open. (should I use stack?)
+                    self.focus = InboxFocus::ManagedPdfList;
+                    return Ok(EventState::Consumed);
+                }
+                Ok(EventState::NotConsumed)
             }
-            Key::Right => {
-                // detailにfocus
-                self.focus = InboxFocus::PdfDetail;
-                return Ok(EventState::Consumed);
+            Key::Char('/') => {
+                self.focus = InboxFocus::Searchbar;
+                Ok(EventState::Consumed)
             }
-            Key::Left => {
-                // detailからどちらかにfocus
-                self.focus = InboxFocus::ManagedPdfList;
-                return Ok(EventState::Consumed);
+            Key::Tab => {
+                self.focus = match self.focus {
+                    InboxFocus::Searchbar => InboxFocus::ManagedPdfList,
+                    InboxFocus::ManagedPdfList => InboxFocus::UnmanagedPdfList,
+                    InboxFocus::UnmanagedPdfList => InboxFocus::Searchbar,
+                    // TODO
+                    InboxFocus::ImportPopup => InboxFocus::ImportPopup,
+                };
+                Ok(EventState::Consumed)
             }
             _ => Ok(EventState::NotConsumed),
         }
     }
+
+    fn focus(&mut self, _focus: bool) {}
 }

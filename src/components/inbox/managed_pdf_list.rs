@@ -1,7 +1,7 @@
 use std::{cmp, path::Path};
 use tui::{
     backend::Backend,
-    layout::{Alignment, Rect},
+    layout::{Alignment, Constraint, Direction, Layout, Rect},
     style::{Color, Modifier, Style},
     text::{Span, Spans},
     widgets::{Block, BorderType, Borders, List, ListItem, ListState, Paragraph},
@@ -10,7 +10,7 @@ use tui::{
 
 use crate::{
     components::{
-        inbox::PdfImportPopup, utils::vertical_scroll::VerticalScroll, Component,
+        inbox::PdfImportPopupComponent, utils::vertical_scroll::VerticalScroll, Component,
         DrawableComponent, EventState, ScrollType,
     },
     domain::pdf_file::PdfFile,
@@ -23,7 +23,6 @@ use super::pdf_file_loader::PdfFileLoader;
 pub struct ManagedPdfListComponent {
     pub pdf_files: Vec<PdfFile>,
     pdf_file_loader: PdfFileLoader,
-    pdf_import_popup: PdfImportPopup,
     list_state: ListState,
     selection: usize,
     scroll: VerticalScroll,
@@ -35,12 +34,17 @@ impl ManagedPdfListComponent {
         Self {
             pdf_files: Vec::new(),
             pdf_file_loader: PdfFileLoader::new(),
-            pdf_import_popup: PdfImportPopup::new(key_config.clone()),
             list_state: ListState::default(),
             selection: 0,
             scroll: VerticalScroll::new(),
             key_config: key_config.clone(),
         }
+    }
+
+    pub fn find_selected_file(&self) -> &PdfFile {
+        let a = self.pdf_files.get(self.selection);
+        let b = a.unwrap();
+        return b;
     }
 
     pub fn load_files(&mut self, p: &Path) -> anyhow::Result<Vec<PdfFile>> {
@@ -65,12 +69,6 @@ impl ManagedPdfListComponent {
         let needs_update = new_selection != self.selection;
         self.selection = new_selection;
         Ok(needs_update)
-    }
-
-    /// How to give f and rect here?
-    fn show_import_popup(&mut self) -> anyhow::Result<EventState> {
-        self.pdf_import_popup.draw(f, rect, true);
-        Ok(EventState::Consumed)
     }
 }
 
@@ -128,11 +126,6 @@ impl Component for ManagedPdfListComponent {
     fn commands(&self) {}
 
     fn event(&mut self, key: Key) -> anyhow::Result<EventState> {
-        if key == self.key_config.enter {
-            let state = self.show_import_popup()?;
-            return Ok(state);
-        }
-
         let selection_changed = if key == self.key_config.scroll_down {
             self.move_selection(ScrollType::Down)?
         } else if key == self.key_config.scroll_up {

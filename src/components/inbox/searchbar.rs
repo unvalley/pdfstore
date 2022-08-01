@@ -39,7 +39,12 @@ impl DrawableComponent for SearchbarComponent {
                 Block::default()
                     .borders(Borders::ALL)
                     .style(Style::default().fg(Color::White))
-                    .border_type(BorderType::Plain),
+                    .border_type(BorderType::Plain)
+                    .border_style(if focused {
+                        Style::default().fg(Color::Cyan)
+                    } else {
+                        Style::default().fg(Color::Gray)
+                    }),
             );
 
         f.render_widget(body, area);

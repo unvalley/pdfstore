@@ -5,11 +5,11 @@ use tui::Frame;
 use super::{Component, DrawableComponent, EventState};
 use crate::{inputs::key::Key, key_config::KeyConfig};
 
-pub struct PdfImportPopup {
+pub struct PdfImportPopupComponent {
     key_config: KeyConfig,
 }
 
-impl PdfImportPopup {
+impl PdfImportPopupComponent {
     pub fn new(key_config: KeyConfig) -> Self {
         Self { key_config }
     }
@@ -19,7 +19,7 @@ impl PdfImportPopup {
     }
 }
 
-impl DrawableComponent for PdfImportPopup {
+impl DrawableComponent for PdfImportPopupComponent {
     fn draw<B: Backend>(
         &mut self,
         f: &mut Frame<B>,
@@ -30,7 +30,7 @@ impl DrawableComponent for PdfImportPopup {
     }
 }
 
-impl Component for PdfImportPopup {
+impl Component for PdfImportPopupComponent {
     fn commands(&self) {}
 
     fn event(&mut self, key: Key) -> anyhow::Result<EventState> {

@@ -130,7 +130,10 @@ impl App {
                 let state = self.inbox.unmanaged_pdf_list.event(key)?;
                 return Ok(state);
             }
-            InboxFocus::PdfDetail => {}
+            InboxFocus::ImportPopup => {
+                // let state = self.inbox.pdf_import_popup.event(key)?;
+                // return Ok(state);
+            }
             InboxFocus::Searchbar => {}
         }
         if self.inbox.event(key)?.is_consumed() {
