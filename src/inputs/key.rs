@@ -178,7 +178,6 @@ impl From<event::KeyEvent> for Key {
                 code: event::KeyCode::Tab,
                 ..
             } => Key::Tab,
-
             // First check for char + modifier
             event::KeyEvent {
                 code: event::KeyCode::Char(c),

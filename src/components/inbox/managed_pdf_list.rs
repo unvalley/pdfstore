@@ -1,7 +1,7 @@
 use std::{cmp, path::Path};
 use tui::{
     backend::Backend,
-    layout::{Alignment, Rect},
+    layout::{Alignment, Constraint, Direction, Layout, Rect},
     style::{Color, Modifier, Style},
     text::{Span, Spans},
     widgets::{Block, BorderType, Borders, List, ListItem, ListState, Paragraph},
@@ -10,8 +10,8 @@ use tui::{
 
 use crate::{
     components::{
-        utils::vertical_scroll::VerticalScroll, Component, DrawableComponent, EventState,
-        ScrollType,
+        inbox::PdfImportPopupComponent, utils::vertical_scroll::VerticalScroll, Component,
+        DrawableComponent, EventState, ScrollType,
     },
     domain::pdf_file::PdfFile,
     inputs::key::Key,
@@ -39,6 +39,12 @@ impl ManagedPdfListComponent {
             scroll: VerticalScroll::new(),
             key_config: key_config.clone(),
         }
+    }
+
+    pub fn find_selected_file(&self) -> &PdfFile {
+        let a = self.pdf_files.get(self.selection);
+        let b = a.unwrap();
+        return b;
     }
 
     pub fn load_files(&mut self, p: &Path) -> anyhow::Result<Vec<PdfFile>> {
@@ -129,8 +135,8 @@ impl Component for ManagedPdfListComponent {
         };
 
         match selection_changed {
-            true => Ok(EventState::Consumed),
-            false => Ok(EventState::NotConsumed),
+            true => return Ok(EventState::Consumed),
+            false => return Ok(EventState::NotConsumed),
         }
     }
 }

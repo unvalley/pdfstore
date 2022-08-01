@@ -1,6 +1,5 @@
 pub mod command;
 pub mod inbox;
-pub mod pdf_import_popup;
 pub mod utils;
 
 use tui::{backend::Backend, layout::Rect, Frame};

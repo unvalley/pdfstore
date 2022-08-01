@@ -3,13 +3,15 @@ use tui::layout::Rect;
 use tui::Frame;
 
 use super::{Component, DrawableComponent, EventState};
-use crate::inputs::key::Key;
+use crate::{inputs::key::Key, key_config::KeyConfig};
 
-pub struct PdfImportPopup {}
+pub struct PdfImportPopupComponent {
+    key_config: KeyConfig,
+}
 
-impl PdfImportPopup {
-    pub fn new() -> Self {
-        Self {}
+impl PdfImportPopupComponent {
+    pub fn new(key_config: KeyConfig) -> Self {
+        Self { key_config }
     }
 
     pub fn open(&mut self) -> anyhow::Result<()> {
@@ -17,7 +19,7 @@ impl PdfImportPopup {
     }
 }
 
-impl DrawableComponent for PdfImportPopup {
+impl DrawableComponent for PdfImportPopupComponent {
     fn draw<B: Backend>(
         &mut self,
         f: &mut Frame<B>,
@@ -28,8 +30,9 @@ impl DrawableComponent for PdfImportPopup {
     }
 }
 
-impl Component for PdfImportPopup {
+impl Component for PdfImportPopupComponent {
     fn commands(&self) {}
+
     fn event(&mut self, key: Key) -> anyhow::Result<EventState> {
         Ok(EventState::NotConsumed)
     }
